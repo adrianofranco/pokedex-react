@@ -2,29 +2,32 @@ import React, { Component, Suspense } from "react";
 
 import "./styles.scss";
 
-import axios from "axios";
+import { loadPokemons, loadPokemon } from "../../utils/load-pokemons";
 
 //import ReactPaginate from 'react-paginate';
 
 import PokedexItens from "../pokemonItens";
 import PokeDisplay from "../PokeDisplay";
+import { TopFilter } from "../TopFilter";
 
 export default class Pokedex extends Component {
   state = {
-    url: "https://pokeapi.co/api/v2/pokemon/",
-    urlPokemonItem: "https://pokeapi.co/api/v2/pokemon-form/",
     pokemons: [],
-    pokemon: null,
+    pokemon: 0,
     offset: 0,
     perpage: 5,
     npokemon: 0,
   };
 
-  handleCallback = (childData) => {
-    axios.get(this.state.urlPokemonItem + childData).then((res) => {
-      const pokemon = res.data;
-      this.setState({ pokemon });
-    });
+  getPokemon = async (pokemonid) => {
+    const pokemon = await loadPokemon(pokemonid);
+    this.setState({ pokemon });
+  };
+
+  getPokemons = async () => {
+    const { offset, perpage } = this.state;
+    const pokemons = await loadPokemons(offset, perpage);
+    this.setState({ pokemons });
   };
 
   componentDidMount() {
@@ -40,55 +43,39 @@ export default class Pokedex extends Component {
     let perpage;
     perpage = event.target.value;
     this.setState({ perpage });
-    setTimeout(() => {
-      this.getPokemons();
-    }, 100);
+
+    this.getPokemons();
   };
 
-  proximaPagina = () => {
+  proximaPagina = async () => {
     let offset;
-
     offset = parseInt(this.state.offset, 10) + parseInt(this.state.perpage, 10);
-
     this.setState({ offset: offset });
-
-    setTimeout(() => {
-      this.getPokemons();
-    }, 100);
-
-    this.getLazy();
+    await this.getPokemons();
+    await this.getLazy();
   };
 
-  anteriorPagina = () => {
+  anteriorPagina = async () => {
     let offset;
-
     offset = parseInt(this.state.offset, 10) - parseInt(this.state.perpage, 10);
-
     this.setState({ offset: offset });
-
-    setTimeout(() => {
-      this.getPokemons();
-    }, 100);
-
-    this.getLazy();
+    await this.getPokemons();
+    await this.getLazy();
   };
 
-  getLazy() {
-    let pokelazy = document.getElementsByClassName("poke-lazy");
+  getLazy = () => {
+    const pokelazy = document.getElementsByClassName("poke-lazy");
+
     for (var i = 0; i < pokelazy.length; i++) {
       pokelazy[i].classList.add("poke-lazy-active");
     }
-  }
 
-  getPokemons() {
-    let url =
-      this.state.url +
-      `?offset=${this.state.offset}&limit=${this.state.perpage}`;
-    axios.get(url).then((res) => {
-      const pokemons = res.data["results"];
-      this.setState({ pokemons });
-    });
-  }
+    setInterval(() => {
+      for (var i = 0; i < pokelazy.length; i++) {
+        pokelazy[i].classList.remove("poke-lazy-active");
+      }
+    }, 2000);
+  };
 
   getInicialPokemon = (event) => {
     let offset;
@@ -105,9 +92,7 @@ export default class Pokedex extends Component {
       this.setState({ offset: offset, npokemon: offset });
     }
 
-    setTimeout(() => {
-      this.getPokemons();
-    }, 100);
+    this.getPokemons();
   };
 
   handleScroll = () => {
@@ -118,36 +103,21 @@ export default class Pokedex extends Component {
 
   render() {
     const { pokemon, scrollTop, perpage, offset, pokemons } = this.state;
-    
+
     return (
       <div className="main">
-        <div className="top">
-          <h2>Filtros</h2>
-          <div>
-            <label>
-              Iniciar no pokémon de nº{" "}
-              <input type="text" onBlur={this.getInicialPokemon} />
-            </label>
-          </div>
-          <div>
-            <label>
-              Quantos itens por vez?
-              <select value={perpage} onChange={this.changePerPage}>
-                <option></option>
-                <option value="0">selecione</option>
-                <option value="5">5</option>
-                <option value="10">10</option>
-                <option value="20">20</option>
-              </select>
-            </label>
-          </div>
-        </div>
+        <TopFilter
+          perpage={perpage}
+          inputOnBlur={this.getInicialPokemon}
+          inputOnChange={this.changePerPage}
+        />
+
         <PokeDisplay pokemon={pokemon}></PokeDisplay>
         <aside className="pokemons">
           <Suspense fallback={<div>Loading...</div>}>
             <PokedexItens
               pokemonsItens={pokemons}
-              parentCallback={this.handleCallback}
+              parentCallback={this.getPokemon}
             ></PokedexItens>
           </Suspense>
         </aside>
