@@ -1,13 +1,6 @@
-export const TopFilter = ({ inputOnBlur, inputOnChange, perpage }) => (
+export const TopFilter = ({inputOnChange, perpage }) => (
   <div className="top">
     <h2>Filtros</h2>
-    <div>
-      <label>
-        Iniciar no pokémon de nº{" "}
-        <input type="text" onBlur={inputOnBlur} />
-      </label>
-    </div>
-    <div>
       <label>
         Quantos itens por vez?
         <select value={perpage} onChange={inputOnChange}>
@@ -18,6 +11,5 @@ export const TopFilter = ({ inputOnBlur, inputOnChange, perpage }) => (
           <option value="20">20</option>
         </select>
       </label>
-    </div>
   </div>
 );

@@ -13,8 +13,9 @@ import { TopFilter } from "../TopFilter";
 export default class Pokedex extends Component {
   state = {
     pokemons: [],
+    allPokemons: [],
     pokemon: 0,
-    offset: 0,
+    page: 0,
     perpage: 5,
     npokemon: 0,
   };
@@ -25,9 +26,26 @@ export default class Pokedex extends Component {
   };
 
   getPokemons = async () => {
-    const { offset, perpage } = this.state;
-    const pokemons = await loadPokemons(offset, perpage);
-    this.setState({ pokemons });
+    const allPokemons = await loadPokemons();
+    this.setState({ allPokemons });
+
+    const { page, perpage } = this.state;
+    
+    const nextPage = page ;
+
+    const nextPokemons = allPokemons.slice(nextPage, nextPage + perpage);
+
+    const pokemons = []
+
+    pokemons.push(...nextPokemons);
+
+    this.setState({
+      pokemons: pokemons,
+      page: nextPage
+    })
+
+    this.getLazy();
+
   };
 
   componentDidMount() {
@@ -39,61 +57,89 @@ export default class Pokedex extends Component {
     window.removeEventListener("scroll", this.handleScroll);
   }
 
-  changePerPage = (event) => {
-    let perpage;
-    perpage = event.target.value;
-    this.setState({ perpage });
+  changePerPage = async (event) => {
 
-    this.getPokemons();
+    const perpage = parseInt(event.target.value);
+    
+    await this.setState({ perpage });
+
+    const { page, allPokemons } = this.state;
+    
+    const nextPage = page ;
+
+    const nextPokemons = allPokemons.slice(nextPage, nextPage + perpage);
+
+    const pokemons = []
+
+    pokemons.push(...nextPokemons);
+
+    this.setState({
+      pokemons: pokemons,
+      page: nextPage
+    })
+
+
   };
 
   proximaPagina = async () => {
-    let offset;
-    offset = parseInt(this.state.offset, 10) + parseInt(this.state.perpage, 10);
-    this.setState({ offset: offset });
-    await this.getPokemons();
-    await this.getLazy();
+        
+    const { page, perpage, allPokemons } = this.state;
+    
+    const nextPage = page + perpage;
+
+    const nextPokemons = allPokemons.slice(nextPage, nextPage + perpage);
+
+    const pokemons = []
+
+    pokemons.push(...nextPokemons);
+
+    this.setState({
+      pokemons: pokemons,
+      page: nextPage
+    })
+
+    this.getLazy();
   };
 
   anteriorPagina = async () => {
-    let offset;
-    offset = parseInt(this.state.offset, 10) - parseInt(this.state.perpage, 10);
-    this.setState({ offset: offset });
-    await this.getPokemons();
+
+    const { page, perpage, allPokemons } = this.state;
+    
+    const nextPage = page - perpage;
+
+    const nextPokemons = allPokemons.slice(nextPage, nextPage + perpage);
+
+    const pokemons = []
+
+    pokemons.push(...nextPokemons);
+
+    this.setState({
+      pokemons: pokemons,
+      page: nextPage
+    })
+
     await this.getLazy();
   };
 
-  getLazy = () => {
+  getLazy = async () => {
     const pokelazy = document.getElementsByClassName("poke-lazy");
 
+    
+
     for (var i = 0; i < pokelazy.length; i++) {
-      pokelazy[i].classList.add("poke-lazy-active");
+      
+      await pokelazy[i].classList.add("poke-lazy-active");
+      
     }
 
-    setInterval(() => {
+    setTimeout(async () => {
       for (var i = 0; i < pokelazy.length; i++) {
-        pokelazy[i].classList.remove("poke-lazy-active");
+        await pokelazy[i].classList.remove("poke-lazy-active");
       }
-    }, 2000);
+    }, 500);
   };
 
-  getInicialPokemon = (event) => {
-    let offset;
-
-    offset = parseInt(event.target.value) - 1;
-
-    if (offset > 898) {
-      alert("Não há mais que 898 Pokémons");
-      this.setState({
-        [event.target.name]: 0,
-      });
-      this.setState({ npokemon: 0 });
-    } else {
-      this.setState({ offset: offset, npokemon: offset });
-    }
-
-    this.getPokemons();
-  };
+  
 
   handleScroll = () => {
     this.setState({
@@ -108,7 +154,6 @@ export default class Pokedex extends Component {
       <div className="main">
         <TopFilter
           perpage={perpage}
-          inputOnBlur={this.getInicialPokemon}
           inputOnChange={this.changePerPage}
         />
 

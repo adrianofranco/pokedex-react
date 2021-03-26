@@ -2,9 +2,9 @@ import axios from "axios";
 
 //CARREGA TODOS OS POKEMONS
 
-export const loadPokemons = async (offset, perpage) => {
+export const loadPokemons = async () => {
   const pokemonsResponse = await axios.get(
-    `https://pokeapi.co/api/v2/pokemon/?offset=${offset}&limit=${perpage}`
+    `https://pokeapi.co/api/v2/pokemon/?offset=0&limit=898`
   );
 
   const [pokemons] = await Promise.all([pokemonsResponse]);
