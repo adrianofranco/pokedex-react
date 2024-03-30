@@ -1,10 +1,10 @@
 # pokedex-react
 
-Esse projeto a carater de estudo é feito em React 
+Esse pequeno a carater de estudo/teste  
 
 Acesse também em [https://adrianofranco.com.br/pokemon/](https://adrianofranco.com.br/pokemon/)
 
-## Como iniciar o projeto?
+## Instale você o projeto
 
 ### `git clone https://github.com/adrianofranco/pokedex-react.git` 
 
